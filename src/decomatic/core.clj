@@ -1,7 +1,7 @@
 (ns decomatic.core)
 
 (defn- ^:testable deco-keys-one-path
-  "Given a datastructure and path describing a location--or locations--within
+  "Given a datastructure and a path describing a location--or locations--within
 it, returns the set of decoration keys found at the location(s)."
   ([x path] (deco-keys-one-path x path #{}))
   ([x path keys]
@@ -16,11 +16,11 @@ it, returns the set of decoration keys found at the location(s)."
                                                      (rest path)
                                                      keys))
                  :else keys)
-           ;; Take the next step
+           ;; Take the specific step, if possible
            (if (contains? x step)
              (recur (x step) (rest path) keys)
              keys)))
-       ;; End of path, this is a key
+       ;; End of path, x is a decoration key
        (conj keys x))))
 
 (defn- ^:testable deco-keys
