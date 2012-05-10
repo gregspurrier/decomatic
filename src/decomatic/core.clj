@@ -8,12 +8,18 @@ it, returns the set of decoration keys found at the location(s)."
      (if (seq path)
        (let [step (first path)]
          (if (and (keyword? step) (= step :*)) ; Keep metaconstants happy
-           (if (seq x)
-             (recur (rest x)
-                    path
-                    (deco-keys-one-path (first x) (rest path) keys))
-             keys)
-           (recur (x (first path)) (rest path) keys)))
+           ;; Wildcard. Take every step.
+           (cond (map? x) (recur (vals x) path keys)
+                 (seq x)  (recur (rest x)
+                                 path
+                                 (deco-keys-one-path (first x)
+                                                     (rest path)
+                                                     keys))
+                 :else keys)
+           ;; Take the next step
+           (if (contains? x step)
+             (recur (x step) (rest path) keys)
+             keys)))
        ;; End of path, this is a key
        (conj keys x))))
 
