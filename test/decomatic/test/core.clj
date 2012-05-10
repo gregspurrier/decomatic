@@ -28,3 +28,17 @@
                                ..k3.. ..v2..}}
                       [..k1.. :*])
   => #{..v1.. ..v2..})
+
+(facts "about apply-xforms-one-path"
+  (apply-xforms-one-path {..k.. ..v..} [..k..] {..v.. ..deco-v..} clobber)
+  => {..k.. ..deco-v..}
+  (apply-xforms-one-path {..k1.. {..k2.. ..v..}}
+                         [..k1.. ..k2..]
+                         {..v.. ..deco-v..}
+                         clobber)
+  => {..k1.. {..k2.. ..deco-v..}}
+  (apply-xforms-one-path {..k1.. [..v1.. ..v2..]}
+                         [..k1.. 1]
+                         {..v2.. ..deco-v2..}
+                         clobber)
+  => {..k1.. [..v1.. ..deco-v2..]})

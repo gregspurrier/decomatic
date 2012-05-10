@@ -31,3 +31,19 @@ that are found a the end of the paths."
             (into ks (deco-keys-one-path x path)))
           #{}
           paths))
+
+(defn- ^:testable apply-xforms-one-path
+  [x path results xform]
+  (let [[step & more] path]
+    (if (contains? x step)
+      (if (seq more)
+        (assoc x step (apply-xforms-one-path (x step) more results xform))
+        ;; At the deco-key, apply the xform
+        (let [deco-key (x step)]
+          (assoc x step (xform deco-key (results deco-key)))))
+      x)))
+
+(defn clobber
+  "Convenience xform fn. Returns the looked up value, ignoring the original."
+  [_ x]
+  x)
