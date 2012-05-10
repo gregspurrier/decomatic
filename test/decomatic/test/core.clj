@@ -16,6 +16,8 @@
   => #{}
   (deco-keys-one-path {..k1.. [..v1.. ..v2..]} [..k1..])
   => #{[..v1.. ..v2..]}
+  (deco-keys-one-path {..k1.. [..v1.. ..v2..]} [..k1.. 1])
+  => #{..v2..}
   (deco-keys-one-path {..k1.. [..v1.. ..v2..]} [..k1.. :*])
   => #{..v1.. ..v2..}
   (deco-keys-one-path {..k1.. [{..k2.. ..v1..}
