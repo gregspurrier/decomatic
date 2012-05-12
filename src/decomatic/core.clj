@@ -1,7 +1,8 @@
-(ns decomatic.core)
+(ns decomatic.core
+  "Decoration of data structures")
 
 (defn- ^:testable deco-keys-one-path
-  "Given a datastructure and a path describing a location--or locations--within
+  "Given a data structure and a path describing a location--or locations--within
 it, returns the set of decoration keys found at the location(s)."
   ([x path] (deco-keys-one-path x path #{}))
   ([x path keys]
@@ -32,38 +33,68 @@ that are found a the end of the paths."
           #{}
           paths))
 
-(def apply-xforms-one-path)
+(defn- ^:testable xform-values
+  [m f]
+  (reduce (fn [m [k v]] (assoc m k (f k v)))
+          {}
+          m))
 
-(defn- apply-xforms-to-seq
-  [x path-rest results xform]
+(def ^:private replace-deco-keys-one-path)
+
+(defn- replace-deco-keys-for-wildcard
+  [x path-rest results]
   (cond (map? x)
         (if (seq path-rest)
           (reduce (fn [m [k v]]
-                    (assoc m k (apply-xforms-one-path
-                                v path-rest results xform)))
+                    (assoc m k (replace-deco-keys-one-path v path-rest results)))
                   {}
                   x)
-          (reduce (fn [m [k v]] (assoc m k (xform v (results v))))
+          (reduce (fn [m [k v]] (assoc m k (results v)))
                   {}
                   x))
         (seq x)
         (if (seq path-rest)
-          (map #(apply-xforms-one-path % path-rest results xform) x)
-          (map #(xform % (results %)) x))
+          (map #(replace-deco-keys-one-path % path-rest results) x)
+          (map #(results %) x))
         :else nil))
 
-(defn- ^:testable apply-xforms-one-path
-  [x path results xform]
+(defn- ^:testable replace-deco-keys-one-path
+  "Given a data structure, a path describing a location--or locations--within
+it, a map containing the results of looking up the decoration keys located
+at those locations, and an xform function, returns an updated datastructure
+in which each path location has been transformed by the xform function."
+  [x path results]
   (let [[step & more] path]
     (cond (and (keyword? step) (= step :*))
-          (apply-xforms-to-seq x more results xform)
+          (replace-deco-keys-for-wildcard x more results)
           (contains? x step)
           (if (seq more)
-            (assoc x step (apply-xforms-one-path (x step) more results xform))
-            ;; At the deco-key, apply the xform
+            (assoc x step (replace-deco-keys-one-path (x step) more results))
+            ;; At the deco-key, replace it with the result
             (let [deco-key (x step)]
-              (assoc x step (xform deco-key (results deco-key)))))
+              (assoc x step (results deco-key))))
           :else x)))
+
+(defn- replace-deco-keys
+  [x paths results]
+  (reduce (fn [x path] (replace-deco-keys-one-path x path results))
+          x
+          paths))
+
+(defn decorate
+  "Decorates a data structure x, given a lookup function, a transformation
+function, and a seq of paths describing locations within x. lookup-fn is a
+function that takes a set of decoration keys and returns a map from decoration
+key to corresponding value. xform-fn is a function that takes a decoration
+key and its looked-up value and returns the value with which the decoration
+key will be replaced in the decorated data structure. xform-fn is assumed to
+be a pure function and will only be called once for each decoration key,
+regardless of how many times that key occurs within x."
+  [lookup-fn xform-fn paths x]
+  (let [results (-> (deco-keys x paths)
+                    (lookup-fn)
+                    (xform-values xform-fn))]
+    (replace-deco-keys x paths results)))
 
 (defn clobber
   "Convenience xform fn. Returns the looked up value, ignoring the original."

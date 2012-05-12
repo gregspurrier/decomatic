@@ -30,59 +30,52 @@
   => #{..v1.. ..v2..})
 
 (unfinished xform)
-(facts "about apply-xforms-one-path"
-  (apply-xforms-one-path {..k.. ..v..} [..k..] {..v.. ..deco-v..} xform)
+(fact "about xform-values"
+  (xform-values {..k1.. ..v1.., ..k2.. ..v2..} xform)
+  => {..k1.. ..x-v1.., ..k2.. ..x-v2..}
+  (provided (xform ..k1.. ..v1..) => ..x-v1..
+            (xform ..k2.. ..v2..) => ..x-v2..))
+
+(facts "about replace-deco-keys-one-path"
+  (replace-deco-keys-one-path {..k.. ..v..} [..k..] {..v.. ..deco-v..})
   => {..k.. ..deco-v..}
-  (provided (xform ..v.. ..deco-v..) => ..deco-v..)
-
-  (apply-xforms-one-path {..k1.. {..k2.. ..v..}}
-                         [..k1.. ..k2..]
-                         {..v.. ..deco-v..}
-                         xform)
+  (replace-deco-keys-one-path {..k1.. {..k2.. ..v..}}
+                              [..k1.. ..k2..]
+                              {..v.. ..deco-v..})
   => {..k1.. {..k2.. ..deco-v..}}
-  (provided (xform ..v.. ..deco-v..) => ..deco-v..)
-
-  (apply-xforms-one-path {..k1.. [..v1.. ..v2..]}
-                         [..k1.. 1]
-                         {..v2.. ..deco-v2..}
-                         xform)
+  (replace-deco-keys-one-path {..k1.. [..v1.. ..v2..]}
+                              [..k1.. 1]
+                              {..v2.. ..deco-v2..})
   => {..k1.. [..v1.. ..deco-v2..]}
-  (provided (xform ..v2.. ..deco-v2..) => ..deco-v2..)
-
   "seq wildcard at end of path"
-  (apply-xforms-one-path {..k1.. [..v1.. ..v2..]}
-                         [..k1.. :*]
-                         {..v1.. ..deco-v1.., ..v2.. ..deco-v2..}
-                         xform)
+  (replace-deco-keys-one-path {..k1.. [..v1.. ..v2..]}
+                              [..k1.. :*]
+                              {..v1.. ..deco-v1.., ..v2.. ..deco-v2..})
   => {..k1.. [..deco-v1.. ..deco-v2..]}
-  (provided (xform ..v1.. ..deco-v1..) => ..deco-v1..
-            (xform ..v2.. ..deco-v2..) => ..deco-v2..)
-
   "seq wildcard within path"
-  (apply-xforms-one-path {..k1.. [{..k2.. ..v1..}
-                                  {..k2.. ..v2..}]}
-                         [..k1.. :* ..k2..]
-                         {..v1.. ..deco-v1.., ..v2.. ..deco-v2..}
-                         xform)
+  (replace-deco-keys-one-path {..k1.. [{..k2.. ..v1..}
+                                       {..k2.. ..v2..}]}
+                              [..k1.. :* ..k2..]
+                              {..v1.. ..deco-v1.., ..v2.. ..deco-v2..})
   => {..k1.. [{..k2.. ..deco-v1..}, {..k2.. ..deco-v2..}]}
-  (provided (xform ..v1.. ..deco-v1..) => ..deco-v1..
-            (xform ..v2.. ..deco-v2..) => ..deco-v2..)
-  
   "map wildcard at end of path"
-  (apply-xforms-one-path {..k1.. ..v1.., ..k2.. ..v2..}
-                         [:*]
-                         {..v1.. ..deco-v1.., ..v2.. ..deco-v2..}
-                         xform)
+  (replace-deco-keys-one-path {..k1.. ..v1.., ..k2.. ..v2..}
+                              [:*]
+                              {..v1.. ..deco-v1.., ..v2.. ..deco-v2..})
   => {..k1.. ..deco-v1.. ..k2.. ..deco-v2..}
-  (provided (xform ..v1.. ..deco-v1..) => ..deco-v1..
-            (xform ..v2.. ..deco-v2..) => ..deco-v2..)
-
   "map wildcard within path"
-  (apply-xforms-one-path {..k1.. {..k3.. ..v1..}, ..k2.. {..k3.. ..v2..}}
-                         [:* ..k3..]
-                         {..v1.. ..deco-v1.., ..v2.. ..deco-v2..}
-                         xform)
-  => {..k1.. {..k3.. ..deco-v1..}, ..k2.. {..k3.. ..deco-v2..}}
-  (provided (xform ..v1.. ..deco-v1..) => ..deco-v1..
-            (xform ..v2.. ..deco-v2..) => ..deco-v2..)
-)
+  (replace-deco-keys-one-path {..k1.. {..k3.. ..v1..}, ..k2.. {..k3.. ..v2..}}
+                              [:* ..k3..]
+                              {..v1.. ..deco-v1.., ..v2.. ..deco-v2..})
+  => {..k1.. {..k3.. ..deco-v1..}, ..k2.. {..k3.. ..deco-v2..}})
+
+(unfinished lookup)
+(fact "about decorate"
+  (decorate lookup xform [[..k1.. :*]] {..k1.. [..v1.. ..v2..]
+                                        ..k2.. [..undecorated..]})
+  => {..k1.. [..deco-v1.. ..deco-v2..]
+      ..k2.. [..undecorated..]}
+  (provided (lookup #{..v1.. ..v2..}) => {..v1.. ..lk-v1..
+                                          ..v2.. ..lk-v2..}
+            (xform ..v1.. ..lk-v1..) => ..deco-v1..
+            (xform ..v2.. ..lk-v2..) => ..deco-v2..))
