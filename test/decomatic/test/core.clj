@@ -68,4 +68,21 @@
   (provided (xform ..v1.. ..deco-v1..) => ..deco-v1..
             (xform ..v2.. ..deco-v2..) => ..deco-v2..)
   
-  )
+  "map wildcard at end of path"
+  (apply-xforms-one-path {..k1.. ..v1.., ..k2.. ..v2..}
+                         [:*]
+                         {..v1.. ..deco-v1.., ..v2.. ..deco-v2..}
+                         xform)
+  => {..k1.. ..deco-v1.. ..k2.. ..deco-v2..}
+  (provided (xform ..v1.. ..deco-v1..) => ..deco-v1..
+            (xform ..v2.. ..deco-v2..) => ..deco-v2..)
+
+  "map wildcard within path"
+  (apply-xforms-one-path {..k1.. {..k3.. ..v1..}, ..k2.. {..k3.. ..v2..}}
+                         [:* ..k3..]
+                         {..v1.. ..deco-v1.., ..v2.. ..deco-v2..}
+                         xform)
+  => {..k1.. {..k3.. ..deco-v1..}, ..k2.. {..k3.. ..deco-v2..}}
+  (provided (xform ..v1.. ..deco-v1..) => ..deco-v1..
+            (xform ..v2.. ..deco-v2..) => ..deco-v2..)
+)

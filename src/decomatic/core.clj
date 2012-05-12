@@ -36,9 +36,21 @@ that are found a the end of the paths."
 
 (defn- apply-xforms-to-seq
   [x path-rest results xform]
-  (if (seq path-rest)
-    (map #(apply-xforms-one-path % path-rest results xform) x)
-    (map #(xform % (results %)) x)))
+  (cond (map? x)
+        (if (seq path-rest)
+          (reduce (fn [m [k v]]
+                    (assoc m k (apply-xforms-one-path
+                                v path-rest results xform)))
+                  {}
+                  x)
+          (reduce (fn [m [k v]] (assoc m k (xform v (results v))))
+                  {}
+                  x))
+        (seq x)
+        (if (seq path-rest)
+          (map #(apply-xforms-one-path % path-rest results xform) x)
+          (map #(xform % (results %)) x))
+        :else nil))
 
 (defn- ^:testable apply-xforms-one-path
   [x path results xform]
