@@ -29,19 +29,43 @@
                       [..k1.. :*])
   => #{..v1.. ..v2..})
 
+(unfinished xform)
 (facts "about apply-xforms-one-path"
-  (apply-xforms-one-path {..k.. ..v..} [..k..] {..v.. ..deco-v..} clobber)
+  (apply-xforms-one-path {..k.. ..v..} [..k..] {..v.. ..deco-v..} xform)
   => {..k.. ..deco-v..}
-  (provided (clobber ..v.. ..deco-v..) => ..deco-v..)
+  (provided (xform ..v.. ..deco-v..) => ..deco-v..)
+
   (apply-xforms-one-path {..k1.. {..k2.. ..v..}}
                          [..k1.. ..k2..]
                          {..v.. ..deco-v..}
-                         clobber)
+                         xform)
   => {..k1.. {..k2.. ..deco-v..}}
-  (provided (clobber ..v.. ..deco-v..) => ..deco-v..)
+  (provided (xform ..v.. ..deco-v..) => ..deco-v..)
+
   (apply-xforms-one-path {..k1.. [..v1.. ..v2..]}
                          [..k1.. 1]
                          {..v2.. ..deco-v2..}
-                         clobber)
+                         xform)
   => {..k1.. [..v1.. ..deco-v2..]}
-  (provided (clobber ..v2.. ..deco-v2..) => ..deco-v2..))
+  (provided (xform ..v2.. ..deco-v2..) => ..deco-v2..)
+
+  "seq wildcard at end of path"
+  (apply-xforms-one-path {..k1.. [..v1.. ..v2..]}
+                         [..k1.. :*]
+                         {..v1.. ..deco-v1.., ..v2.. ..deco-v2..}
+                         xform)
+  => {..k1.. [..deco-v1.. ..deco-v2..]}
+  (provided (xform ..v1.. ..deco-v1..) => ..deco-v1..
+            (xform ..v2.. ..deco-v2..) => ..deco-v2..)
+
+  "seq wildcard within path"
+  (apply-xforms-one-path {..k1.. [{..k2.. ..v1..}
+                                  {..k2.. ..v2..}]}
+                         [..k1.. :* ..k2..]
+                         {..v1.. ..deco-v1.., ..v2.. ..deco-v2..}
+                         xform)
+  => {..k1.. [{..k2.. ..deco-v1..}, {..k2.. ..deco-v2..}]}
+  (provided (xform ..v1.. ..deco-v1..) => ..deco-v1..
+            (xform ..v2.. ..deco-v2..) => ..deco-v2..)
+  
+  )

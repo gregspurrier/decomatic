@@ -32,16 +32,26 @@ that are found a the end of the paths."
           #{}
           paths))
 
+(def apply-xforms-one-path)
+
+(defn- apply-xforms-to-seq
+  [x path-rest results xform]
+  (if (seq path-rest)
+    (map #(apply-xforms-one-path % path-rest results xform) x)
+    (map #(xform % (results %)) x)))
+
 (defn- ^:testable apply-xforms-one-path
   [x path results xform]
   (let [[step & more] path]
-    (if (contains? x step)
-      (if (seq more)
-        (assoc x step (apply-xforms-one-path (x step) more results xform))
-        ;; At the deco-key, apply the xform
-        (let [deco-key (x step)]
-          (assoc x step (xform deco-key (results deco-key)))))
-      x)))
+    (cond (and (keyword? step) (= step :*))
+          (apply-xforms-to-seq x more results xform)
+          (contains? x step)
+          (if (seq more)
+            (assoc x step (apply-xforms-one-path (x step) more results xform))
+            ;; At the deco-key, apply the xform
+            (let [deco-key (x step)]
+              (assoc x step (xform deco-key (results deco-key)))))
+          :else x)))
 
 (defn clobber
   "Convenience xform fn. Returns the looked up value, ignoring the original."
