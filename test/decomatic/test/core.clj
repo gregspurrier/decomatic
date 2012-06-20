@@ -81,4 +81,6 @@
             (xform ..v2.. ..lk-v2..) => ..deco-v2..)
 
   (decorate lookup xform [[..k1.. :*]] {})
-  => {})
+  => {}
+  (decorate lookup xform [[:* ..k1..]] [])
+  => [])

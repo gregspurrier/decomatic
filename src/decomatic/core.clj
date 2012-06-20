@@ -56,12 +56,12 @@ that are found a the end of the paths."
         (if (seq path-rest)
           (map #(replace-deco-keys-one-path % path-rest results) x)
           (map #(results %) x))
-        :else nil))
+        :else x))
 
 (defn- ^:testable replace-deco-keys-one-path
   "Given a data structure, a path describing a location--or locations--within
 it, a map containing the results of looking up the decoration keys located
-at those locations, and an xform function, returns an updated datastructure
+at those locations and transforming them, returns an updated datastructure
 in which each path location has been transformed by the xform function."
   [x path results]
   (let [[step & more] path]
