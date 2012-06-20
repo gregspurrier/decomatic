@@ -78,4 +78,7 @@
   (provided (lookup #{..v1.. ..v2..}) => {..v1.. ..lk-v1..
                                           ..v2.. ..lk-v2..}
             (xform ..v1.. ..lk-v1..) => ..deco-v1..
-            (xform ..v2.. ..lk-v2..) => ..deco-v2..))
+            (xform ..v2.. ..lk-v2..) => ..deco-v2..)
+
+  (decorate lookup xform [[..k1.. :*]] {})
+  => {})

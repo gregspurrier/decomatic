@@ -81,6 +81,11 @@ in which each path location has been transformed by the xform function."
           x
           paths))
 
+(defn- lookup-if-keys
+  [keys f]
+  (when (seq keys)
+    (f keys)))
+
 (defn decorate
   "Decorates a data structure x, given a lookup function, a transformation
 function, and a seq of paths describing locations within x. lookup-fn is a
@@ -92,7 +97,7 @@ be a pure function and will only be called once for each decoration key,
 regardless of how many times that key occurs within x."
   [lookup-fn xform-fn paths x]
   (let [results (-> (deco-keys x paths)
-                    (lookup-fn)
+                    (lookup-if-keys lookup-fn)
                     (xform-values xform-fn))]
     (replace-deco-keys x paths results)))
 
