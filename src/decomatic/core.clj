@@ -44,33 +44,41 @@ that are found a the end of the paths."
           paths))
 
 (defn- ^:testable xform-values
+  "Updates m by replacing each value with the result of applying f to its key
+and value."
   [m f]
-  (reduce (fn [m [k v]] (assoc m k (f k v)))
-          {}
-          m))
+  (into {} (map (fn [[k v]] [k (f k v)]) m)))
+
+(defn- ^:testable update-values
+  "Updates m by replacing each value with the result of applying f to it."
+  [f m]
+  (into {} (map (fn [[k v]] [k (f v)]) m)))
 
 (declare ^:private replace-deco-keys-one-path)
 
-(defn- replace-deco-keys-for-wildcard
+(defn- replace-deco-keys-for-inner-wildcard
   [x path-rest results]
   (if (map? x)
-    (if (seq path-rest)
-      (reduce (fn [m [k v]]
-                (assoc m k (replace-deco-keys-one-path v path-rest results)))
-              {}
-              x)
-      (reduce (fn [m [k v]] (assoc m k (results v)))
-              {}
-              x))
-    (if (seq path-rest)
-      (w/walk #(replace-deco-keys-one-path % path-rest results) identity x)
-      (w/walk #(results %) identity x))))
+    (update-values #(replace-deco-keys-one-path % path-rest results) x)
+    (w/walk #(replace-deco-keys-one-path % path-rest results) identity x)))
+
+(defn- replace-deco-keys-for-terminal-wildcard
+  [x results]
+  (if (map? x)
+    (update-values results x)
+    (w/walk results identity x)))
+
+(defn- replace-deco-keys-for-wildcard
+  [x path-rest results]
+  (if (seq path-rest)
+    (replace-deco-keys-for-inner-wildcard x path-rest results)
+    (replace-deco-keys-for-terminal-wildcard x results)))
 
 (defn- ^:testable replace-deco-keys-one-path
   "Given a data structure, a path describing a location--or locations--within
 it, a map containing the results of looking up the decoration keys located
 at those locations and transforming them, returns an updated datastructure
-in which each path location has been transformed by the xform function."
+in which each path location has been replaced with its decorated version."
   [x path results]
   (let [[step & more] path]
     (cond (wildcard? step)

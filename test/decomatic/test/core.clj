@@ -36,6 +36,13 @@
   (provided (xform ..k1.. ..v1..) => ..x-v1..
             (xform ..k2.. ..v2..) => ..x-v2..))
 
+(unfinished update-fn)
+(fact "about update-values"
+  (update-values update-fn {..k1.. ..v1.., ..k2.. ..v2..})
+  => {..k1.. ..u-v1.., ..k2.. ..u-v2..}
+  (provided (update-fn ..v1..) => ..u-v1..
+            (update-fn ..v2..) => ..u-v2..))
+
 (facts "about replace-deco-keys-one-path"
   (replace-deco-keys-one-path {..k.. ..v..} [..k..] {..v.. ..deco-v..})
   => {..k.. ..deco-v..}
