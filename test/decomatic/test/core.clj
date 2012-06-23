@@ -84,3 +84,16 @@
   => {}
   (decorate lookup xform [[:* ..k1..]] [])
   => [])
+
+(fact "the type of a seq is preserved by decorate"
+  (decorate lookup clobber [[:*]] (list ..k1..))
+  => list?
+  (provided (lookup #{..k1..}) => {..k1.. ..v1..})
+
+  (decorate lookup clobber [[:*]] [..k1..])
+  => vector?
+  (provided (lookup #{..k1..}) => {..k1.. ..v1..})
+
+  (decorate lookup clobber [[:*]] #{..k1..})
+  => set?
+  (provided (lookup #{..k1..}) => {..k1.. ..v1..}))

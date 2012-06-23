@@ -1,5 +1,6 @@
 (ns decomatic.core
-  "Decoration of data structures")
+  "Decoration of data structures"
+  (:require [clojure.walk :as w]))
 
 (defn- ^:testable deco-keys-one-path
   "Given a data structure and a path describing a location--or locations--within
@@ -43,20 +44,18 @@ that are found a the end of the paths."
 
 (defn- replace-deco-keys-for-wildcard
   [x path-rest results]
-  (cond (map? x)
-        (if (seq path-rest)
-          (reduce (fn [m [k v]]
-                    (assoc m k (replace-deco-keys-one-path v path-rest results)))
-                  {}
-                  x)
-          (reduce (fn [m [k v]] (assoc m k (results v)))
-                  {}
-                  x))
-        (seq x)
-        (if (seq path-rest)
-          (map #(replace-deco-keys-one-path % path-rest results) x)
-          (map #(results %) x))
-        :else x))
+  (if (map? x)
+    (if (seq path-rest)
+      (reduce (fn [m [k v]]
+                (assoc m k (replace-deco-keys-one-path v path-rest results)))
+              {}
+              x)
+      (reduce (fn [m [k v]] (assoc m k (results v)))
+              {}
+              x))
+    (if (seq path-rest)
+      (w/walk #(replace-deco-keys-one-path % path-rest results) identity x)
+      (w/walk #(results %) identity x))))
 
 (defn- ^:testable replace-deco-keys-one-path
   "Given a data structure, a path describing a location--or locations--within
