@@ -2,6 +2,16 @@
   "Decoration of data structures"
   (:require [clojure.walk :as w]))
 
+(def ^{:doc "The symbol used to indicate a wildcard step in a path."
+       :dynamic true}
+  *wildcard-sym* :*)
+
+(defn- wildcard?
+  [x]
+  ;; Explicity check for keyword in order to play nicely with
+  ;; metaconstants in the tests.
+  (and (keyword? x) (= x *wildcard-sym*)))
+
 (defn- ^:testable deco-keys-one-path
   "Given a data structure and a path describing a location--or locations--within
 it, returns the set of decoration keys found at the location(s)."
@@ -9,8 +19,7 @@ it, returns the set of decoration keys found at the location(s)."
   ([x path keys]
      (if (seq path)
        (let [step (first path)]
-         (if (and (keyword? step) (= step :*)) ; Keep metaconstants happy
-           ;; Wildcard. Take every step.
+         (if (wildcard? step)
            (cond (map? x) (recur (vals x) path keys)
                  (seq x)  (recur (rest x)
                                  path
@@ -40,7 +49,7 @@ that are found a the end of the paths."
           {}
           m))
 
-(def ^:private replace-deco-keys-one-path)
+(declare ^:private replace-deco-keys-one-path)
 
 (defn- replace-deco-keys-for-wildcard
   [x path-rest results]
@@ -64,7 +73,7 @@ at those locations and transforming them, returns an updated datastructure
 in which each path location has been transformed by the xform function."
   [x path results]
   (let [[step & more] path]
-    (cond (and (keyword? step) (= step :*))
+    (cond (wildcard? step)
           (replace-deco-keys-for-wildcard x more results)
           (contains? x step)
           (if (seq more)
@@ -85,22 +94,24 @@ in which each path location has been transformed by the xform function."
   (when (seq keys)
     (f keys)))
 
-(defn decorate
-  "Decorates a data structure x, given a lookup function, a transformation
-function, and a seq of paths describing locations within x. lookup-fn is a
-function that takes a set of decoration keys and returns a map from decoration
-key to corresponding value. xform-fn is a function that takes a decoration
-key and its looked-up value and returns the value with which the decoration
-key will be replaced in the decorated data structure. xform-fn is assumed to
-be a pure function and will only be called once for each decoration key,
-regardless of how many times that key occurs within x."
-  [lookup-fn xform-fn paths x]
-  (let [results (-> (deco-keys x paths)
-                    (lookup-if-keys lookup-fn)
-                    (xform-values xform-fn))]
-    (replace-deco-keys x paths results)))
-
 (defn clobber
   "Convenience xform fn. Returns the looked up value, ignoring the original."
   [_ x]
   x)
+
+(defn decorate
+  "Decorates a data structure x, given a lookup function, an optional
+transformation function, and a seq of paths describing locations within x.
+lookup-fn is a function that takes a set of decoration keys and returns a map
+from decoration key to corresponding value. xform-fn is a function that takes a
+decoration key and its looked-up value and returns the value with which the
+decoration key will be replaced in the decorated data structure. xform-fn is
+assumed to be a pure function and will only be called once for each decoration
+key, regardless of how many times that key occurs within x."
+  ([lookup-fn paths x]
+     (decorate lookup-fn clobber paths x))
+  ([lookup-fn xform-fn paths x]
+     (let [results (-> (deco-keys x paths)
+                       (lookup-if-keys lookup-fn)
+                       (xform-values xform-fn))]
+       (replace-deco-keys x paths results))))
