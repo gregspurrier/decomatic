@@ -12,7 +12,7 @@ The `:from` and `:to` fields contain user IDs, but you want a version of the dat
 ```clojure
 {:from {:id 1, :name "Fred"}
  :to   {:id 2, :name "Mary"}
- :text "Hello Mary!}}
+ :text "Hello Mary!"}}
 ```
 
 This can be achieved with Decomatic's `decorate` function:
