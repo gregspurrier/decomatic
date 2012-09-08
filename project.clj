@@ -1,7 +1,9 @@
 (defproject decomatic "0.1.0-SNAPSHOT"
   :description "Datastructure decoration"
+  :url "https://github.com/gregspurrier/decomatic"
+  :license {:name "MIT"
+            :url "http://opensource.org/licenses/mit-license.php"
+            :distribution :repo}
   :dependencies [[org.clojure/clojure "1.3.0"]]
-  :dev-dependencies [[midje "1.4.0"]
-                     [lein-midje "1.0.10"]
-                     [com.stuartsierra/lazytest "1.2.3"]]
-  :repositories {"stuart" "http://stuartsierra.com/maven2"})
+  :profiles {:dev {:dependencies [[midje "1.4.0"]]}}
+  :min-lein-version "2.0.0")
