@@ -1,4 +1,4 @@
-(defproject decomatic "0.1.0-SNAPSHOT"
+(defproject decomatic "0.1.0"
   :description "Datastructure decoration"
   :url "https://github.com/gregspurrier/decomatic"
   :license {:name "MIT"
