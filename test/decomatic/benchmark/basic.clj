@@ -1,6 +1,7 @@
 (ns decomatic.benchmark.basic
   (:use [criterium.core :only (benchmark report-result)])
-  (:require [decomatic.core :as deco]))
+  (:require [decomatic.core :as deco]
+            [decomatic.path :as path]))
 
 (def bottom {:x 1 :y 2})
 (def mid {:a (vec (repeat 5 bottom))
@@ -24,7 +25,9 @@
             [:* :c :d :* :x]
             [:* :c :d :* :y]])
 
+(def path-tree (path/path-tree paths))
+
 (defn -main
   []
   (report-result
-    (benchmark (deco/decorate sample-lookup-fn paths sample-data))))
+    (benchmark (deco/decorate sample-lookup-fn deco/clobber paths path-tree sample-data))))

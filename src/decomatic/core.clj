@@ -18,30 +18,30 @@
 (declare deco-keys-from-path-tree)
 
 (defn- deco-keys-for-wildcard-step
-  [coll subtree deco-keys]
+  [coll subtree key-set]
   (->> (cond (map? coll) (vals coll)
              (seq coll)  coll
              :else nil)
-       (reduce (fn [ks c] (deco-keys-from-path-tree c subtree ks)) deco-keys)))
+       (reduce (fn [ks c] (deco-keys-from-path-tree c subtree ks)) key-set)))
 
 (defn- deco-keys-from-path-tree
-  [coll path-tree deco-keys]
+  [coll path-tree key-set]
   (if (empty? path-tree)
-    (conj deco-keys coll)
+    (conj key-set coll)
     (reduce (fn [ks [step subtree]]
               (if (wildcard? step)
                 (deco-keys-for-wildcard-step coll subtree ks)
                 (if (contains? coll step)
                   (deco-keys-from-path-tree (coll step) subtree ks)
                   ks)))
-            deco-keys
+            key-set
             path-tree)))
 
 (defn- ^:testable deco-keys
   "Given a collection and a seq of paths into that collection, returns the set
 of decoration keys that are found a the end of the paths."
-  [x paths]
-  (or (deco-keys-from-path-tree x (path/path-tree paths) #{})
+  [x path-tree]
+  (or (deco-keys-from-path-tree x path-tree #{})
       #{}))
 
 (defn- ^:testable xform-values
@@ -120,7 +120,9 @@ key, regardless of how many times that key occurs within x."
   ([lookup-fn paths x]
      (decorate lookup-fn clobber paths x))
   ([lookup-fn xform-fn paths x]
-     (let [results (-> (deco-keys x paths)
+     (decorate lookup-fn xform-fn paths (path/path-tree paths) x))
+  ([lookup-fn xform-fn paths path-tree x]
+     (let [results (-> (deco-keys x path-tree)
                        (lookup-if-keys lookup-fn)
                        (xform-values xform-fn))]
        (replace-deco-keys x paths results))))
