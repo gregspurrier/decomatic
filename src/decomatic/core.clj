@@ -18,30 +18,31 @@
 (declare deco-keys-from-path-tree)
 
 (defn- deco-keys-for-wildcard-step
-  [coll subtree]
+  [coll subtree deco-keys]
   (->> (cond (map? coll) (vals coll)
              (seq coll)  coll
              :else nil)
-       (map #(deco-keys-from-path-tree % subtree))
-       (reduce set/union #{})))
+       (reduce (fn [ks c] (deco-keys-from-path-tree c subtree ks)) deco-keys)))
 
 (defn- deco-keys-from-path-tree
-  [coll path-tree]
+  [coll path-tree deco-keys]
   (if (empty? path-tree)
-    #{coll}
-    (reduce set/union #{}
-            (map (fn [[step subtree]]
-                   (if (wildcard? step)
-                     (deco-keys-for-wildcard-step coll subtree)
-                     (if (contains? coll step)
-                       (deco-keys-from-path-tree (coll step) subtree))))
-                 path-tree))))
+    (conj deco-keys coll)
+    (reduce (fn [ks [step subtree]]
+              (if (wildcard? step)
+                (deco-keys-for-wildcard-step coll subtree ks)
+                (if (contains? coll step)
+                  (deco-keys-from-path-tree (coll step) subtree ks)
+                  ks)))
+            deco-keys
+            path-tree)))
 
 (defn- ^:testable deco-keys
   "Given a collection and a seq of paths into that collection, returns the set
 of decoration keys that are found a the end of the paths."
   [x paths]
-  (deco-keys-from-path-tree x (path/path-tree paths)))
+  (or (deco-keys-from-path-tree x (path/path-tree paths) #{})
+      #{}))
 
 (defn- ^:testable xform-values
   "Updates m by replacing each value with the result of applying f to its key
